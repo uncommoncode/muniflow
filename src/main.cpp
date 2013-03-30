@@ -54,8 +54,11 @@ int main(int argc, char *argv[]) {
     QSharedPointer<RawProinitialMsto> proto(new Simple());
     proto->accept(contestData);
 
-    // window normalized to 0, 1
-    proto->DrawFrame(painter, TimeController);
+    VisWindow window(proto);
+        // window normalized to 0, 1
+        proto->DrawFrame(painter, TimeController);
+    window.show();
+
 #endif
 
     return 0;

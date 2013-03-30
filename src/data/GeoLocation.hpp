@@ -32,7 +32,7 @@ struct GeoArea {
 
 class GeoCoordinateTransform {
 public:
-    GeoCoordinateTransform(const GeoArea& area) :
+    GeoCoordinateTransform(const GeoArea& area = GeoArea()) :
         m_area(area)
     {
         // do nothing
