@@ -4,6 +4,8 @@
 #include <data/PassengerData.hpp>
 #include <data/RealtimeData.hpp>
 
-void plot(const QVector<RealtimeEntry> &entries);
-void plot(const QVector<PassengerEntry> &entries);
-void plot(const QVector<ScheduleEntry> &entries);
+#include <data/VisData.hpp>
+
+void plot(const VisData &visData, const QVector<RealtimeEntry> &entries);
+void plot(const VisData &visData, const QVector<PassengerEntry> &entries);
+void plot(const VisData &visData, const QVector<ScheduleEntry> &entries);

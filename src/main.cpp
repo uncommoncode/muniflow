@@ -5,6 +5,7 @@
 #include <QFile>
 
 #include "data/RawContestData.hpp"
+#include "data/VisData.hpp"
 
 #include "vis/Plot.hpp"
 
@@ -29,24 +30,30 @@ QString samplePath(const QString &basePath, bool sample) {
 
 int main(int argc, char *argv[]) {
     QString directoryPath = "/home/emmett/Downloads/Urban-Data-Challenge-master/public-transportation/san-francisco/";
-    bool sample = true;
+    bool sample = false;
 
     RawContestData contestData;
     readRealtimeData(directoryPath + samplePath("realtime-arrivals", sample), &contestData.realtimeData);
-
+#if defined(PLOT_ALL)
     QVector<PassengerEntry> passengerData;
     readPassengerData(directoryPath + samplePath("passenger-count", sample), &contestData.passengerData);
 
     QVector<ScheduleEntry> scheduleData;
     readScheduleData(directoryPath + samplePath("scheduled-arrivals", sample), &contestData.scheduleData);
+#endif
+
+    VisData visData;
+    readVisData(VisData::Type_SanFrancisco, &visData);
 
     QApplication app(argc, argv);
-    plot(contestData.realtimeData);
-    plot(contestData.scheduleData);
-    plot(contestData.passengerData);
+    plot(visData, contestData.realtimeData);
+#if defined(PLOT_ALL)
+    plot(visData, contestData.scheduleData);
+    plot(visData, contestData.passengerData);
 
     QSharedPointer<RawProto> proto(new Simple());
     proto->accept(contestData);
+#endif
 
     return 0;
 }
