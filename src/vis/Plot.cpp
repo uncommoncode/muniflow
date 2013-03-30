@@ -13,18 +13,18 @@ float max(float a, float b) {
     return a > b ? a : b;
 }
 
-#if 0
-void dimensions() {
-
-    float minx = 1000.0f, maxx = -1000.0f, miny = 1000.0f, maxy = -1000.0f;
-    minx = min(minx, entry.position.latitude);
-    maxx = max(maxx, entry.position.latitude);
-    miny = min(miny, entry.position.longitude);
-    maxy = max(maxy, entry.position.longitude);
+template <typename ENTRY_TYPE>
+void printDimensions(const QVector<ENTRY_TYPE> &entries) {
+    const ENTRY_TYPE &entry = entries.at(0);
+    float minx = entry.position.longitude, maxx = entry.position.longitude, miny = entry.position.latitude, maxy = entry.position.latitude;
+    foreach (const ENTRY_TYPE &entry, entries) {
+        minx = min(minx, entry.position.latitude);
+        maxx = max(maxx, entry.position.latitude);
+        miny = min(miny, entry.position.longitude);
+        maxy = max(maxy, entry.position.longitude);
+    }
     qDebug() << QString("Range: ") << minx << QString(" ") << maxx << QString(" ") << miny << QString(" ") << maxy;
-
 }
-#endif
 
 void plot(const VisData &visData, const QVector<RealtimeEntry> &entries) {
     QImage image(512, 512, QImage::Format_ARGB32);
