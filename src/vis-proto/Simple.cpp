@@ -32,8 +32,13 @@ void Simple::render(const RenderData &renderData, QPainter *painter) {
             QPointF position = renderData.geoxform.apply(entry.position);
             painter->fillRect(QRectF(position, QSizeF(m_impl->r, m_impl->r)), Qt::green);
         } else {
-            // abort, outside of window
-            break;
+            if (renderData.time.lt(entry.arrivalTime)) {
+                // drop frame, in past
+                index++;
+            } else {
+                // abort, in future
+                break;
+            }
         }
     }
     m_impl->index = index;

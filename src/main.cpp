@@ -8,6 +8,7 @@
 #include "data/VisData.hpp"
 
 #include "vis/Plot.hpp"
+#include "vis/VisWindow.hpp"
 
 #include "vis-proto/RawProto.hpp"
 #include "vis-proto/Simple.hpp"
@@ -50,16 +51,19 @@ int main(int argc, char *argv[]) {
 #if defined(PLOT_ALL)
     plot(visData, contestData.scheduleData);
     plot(visData, contestData.passengerData);
-
-    QSharedPointer<RawProinitialMsto> proto(new Simple());
-    proto->accept(contestData);
-
-    VisWindow window(proto);
-        // window normalized to 0, 1
-        proto->DrawFrame(painter, TimeController);
-    window.show();
-
 #endif
 
-    return 0;
+    QSharedPointer<RawProto> proto(new Simple());
+    proto->accept(contestData);
+
+    RenderData renderData;
+    renderData.config = visData;
+    renderData.geoxform = GeoCoordinateTransform(renderData.config.area);
+    int64_t tlen = 5000000LL;
+    renderData.time = TimeController(renderData.config.t0 - tlen, tlen);
+
+    VisWindow window(proto.data(), renderData);
+    window.show();
+
+    return app.exec();
 }
