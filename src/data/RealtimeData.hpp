@@ -7,6 +7,7 @@
 #include <QVector>
 
 #include "GeoLocation.hpp"
+#include "Time.hpp"
 
 struct RealtimeEntry {
     QString name;
@@ -17,7 +18,7 @@ struct RealtimeEntry {
     uint32_t carId;
     uint32_t stopId;
     GeoLocation position;
-    QDateTime arrivalTime;
+    Time arrivalTime;
 }; // struct RealtimeEntry
 
 void readRealtimeData(const QString& filePath, QVector<RealtimeEntry> *entries);

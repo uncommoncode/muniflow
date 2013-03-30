@@ -51,8 +51,11 @@ int main(int argc, char *argv[]) {
     plot(visData, contestData.scheduleData);
     plot(visData, contestData.passengerData);
 
-    QSharedPointer<RawProto> proto(new Simple());
+    QSharedPointer<RawProinitialMsto> proto(new Simple());
     proto->accept(contestData);
+
+    // window normalized to 0, 1
+    proto->DrawFrame(painter, TimeController);
 #endif
 
     return 0;

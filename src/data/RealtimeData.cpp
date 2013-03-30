@@ -25,7 +25,7 @@ void readRealtimeData(const QString& filePath, QVector<RealtimeEntry> *entries) 
       entry.carId = fields.at(5).toULong();
       entry.stopId = fields.at(6).toULong();
       entry.position = toGeoLocation(fields.at(7), fields.at(8));
-      entry.arrivalTime = QDateTime::fromString(fields.at(9), "M/d/yyyy h:mm:ss.000000 AP");
+      entry.arrivalTime = toTime(QDateTime::fromString(fields.at(9), "M/d/yyyy h:mm:ss.000000 AP"));
 
       entries->push_back(entry);
     }
