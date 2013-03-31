@@ -84,7 +84,10 @@ void setAlpha(QImage *image, uint8_t alpha) {
     for (int y = 0; y < image->height(); y++) {
         QRgb *scanline = (QRgb*)image->scanLine(y);
         for (int x = 0; x < image->width(); x++) {
-            ((uint8_t*)&scanline[x])[3] = alpha;
+            uint8_t a = ((uint8_t*)&scanline[x])[3];
+            if (a > 10) {
+                ((uint8_t*)&scanline[x])[3] = alpha;
+            }
         }
     }
 }
@@ -95,16 +98,18 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
     dateTime.setMSecsSinceEpoch(renderData.time.current());
     int hour = dateTime.time().hour();
 
-    painter->fillRect(QRect(QPoint(0, 0), renderData.pixelSize), QBrush(QColor(0, 40, 200)));
-    uint8_t v = hour / 24;
-    //painter->fillRect(QRect(QPoint(0, 0), renderData.pixelSize), QBrush(QColor(v, v, v, 255)));
+    //painter->fillRect(QRect(QPoint(0, 0), renderData.pixelSize), QBrush(QColor(0, 40, 200)));
+
+    // noon peak, +/- 6 hours of sun
+    float h = hour / 24.0f;
+    float dh = 0.5f - h;
+    uint8_t v = uint8_t(255.0f * qAbs(dh));
+    painter->fillRect(QRect(QPoint(0, 0), renderData.pixelSize), QBrush(QColor(240, 240, 240, 255)));
+    painter->fillRect(QRect(QPoint(0, 0), renderData.pixelSize), QBrush(QColor(0, 0, 0, v)));
     QImage image(m_impl->basemap);
     painter->setCompositionMode(QPainter::CompositionMode_SourceAtop);
-    //setAlpha(&image, 255);
+    //setAlpha(&image, uint8_t(v * 0.75f + 255.0f * 0.25f));
     painter->drawImage(0, 0, image);
-
-
-
 
 #if 0
     // update particles

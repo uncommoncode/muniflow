@@ -30,13 +30,14 @@ void VisWindow::paintEvent(QPaintEvent *event) {
 #if defined(USE_BUFFER)
     QPainter painter(&m_buffer);
     painter.fillRect(m_buffer.rect(), Qt::black);
-    painter.setPen(Qt::white);
-    painter.drawText(20, 20, QString(toQDateTime(toTime(m_renderData.time.current())).toString()));
-    painter.drawText(20, 35, QString::number(m_frame));
 #if defined(USE_NORMALIZED_COORDINATES)
     painter.scale(this->width(), this->height());
 #endif
     m_renderer->render(m_renderData, &painter);
+
+    painter.setPen(Qt::white);
+    painter.drawText(20, 20, QString(toQDateTime(toTime(m_renderData.time.current())).toString()));
+    painter.drawText(20, 35, QString::number(m_frame));
     m_renderData.time.update();
 
     QPainter windowPainter(this);
@@ -45,13 +46,14 @@ void VisWindow::paintEvent(QPaintEvent *event) {
 #else
     QPainter painter(this);
     painter.fillRect(this->rect(), Qt::black);
-    painter.setPen(Qt::white);
-    painter.drawText(20, 20, QString(toQDateTime(toTime(m_renderData.time.current())).toString()));
-    painter.drawText(20, 35, QString::number(m_frame));
 #if defined(USE_NORMALIZED_COORDINATES)
     painter.scale(this->width(), this->height());
 #endif
     m_renderer->render(m_renderData, &painter);
+
+    painter.setPen(Qt::white);
+    painter.drawText(20, 20, QString(toQDateTime(toTime(m_renderData.time.current())).toString()));
+    painter.drawText(20, 35, QString::number(m_frame));
     m_renderData.time.update();
 #endif
     m_frame++;
