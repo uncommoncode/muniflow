@@ -76,7 +76,7 @@ DLCycle::DLCycle(const QString& imageDirectoryPath) :
 void DLCycle::init(const RenderData &renderData) {
     m_impl->index = 0;
     m_impl->r = 100.0f * qMin(renderData.config.area.size.latitude, renderData.config.area.size.longitude) / 500.0f;
-    m_impl->decayMax = 100.0f * float(renderData.framePeriodMs);
+    m_impl->decayMax = 10;
     m_impl->time = 0;
 }
 
@@ -119,6 +119,8 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
     float h = (float(hour) + float(minute) / 60.0f + float(second) / 3600.0f) / 24.0f;
     float dh = 0.5f - h;
     uint8_t v = uint8_t(255.0f * 2.0f * qAbs(dh));
+
+    // sunset red - blue, sunrise yellow
     painter->fillRect(QRect(QPoint(0, 0), renderData.pixelSize), QBrush(QColor(240, 240, 240, 255)));
     painter->fillRect(QRect(QPoint(0, 0), renderData.pixelSize), QBrush(QColor(0, 0, 0, v)));
     QImage image(m_impl->basemap);
@@ -127,36 +129,24 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
     const float imscale = 1.0;
     painter->scale(imscale, imscale);
     painter->drawImage(0, 0, image);
+    painter->setCompositionMode(QPainter::CompositionMode_Darken);
+    uint8_t darkness = uint8_t(170.0f * 2.0f * qAbs(dh));
+    painter->fillRect(QRect(QPoint(0, 0), renderData.pixelSize), QBrush(QColor(0, 0, 0, darkness)));
 
     // draw all glyphs
-    painter->setCompositionMode(QPainter::CompositionMode_Source);
     painter->scale(renderData.pixelSize.width(), renderData.pixelSize.height());
 
-    qDebug() << renderData.pixelSize;
+    painter->setCompositionMode(QPainter::CompositionMode_SourceAtop);
+    //painter->fillRect(QRectF(QPointF(0.5, 0.5), QSizeF(0.01, 0.01)), QBrush(QColor(0, 255, 0, (8 * v) & 0xff)));
+
     size_t size = m_impl->realtimeData->size();
-#if 1
-    GeoLocation topRight;
-    topRight.latitude = renderData.config.area.bottomLeft.latitude + renderData.config.area.size.latitude;
-    topRight.longitude = renderData.config.area.bottomLeft.longitude + renderData.config.area.size.longitude;
-    QPointF trp = geoToTile(topRight);
-    qDebug() << trp;
-    QPointF blp = geoToTile(renderData.config.area.bottomLeft);
-    qDebug() << blp;
-
-    QPointF sp(trp.x() - blp.x(), (trp.y() - blp.y()));
-
-    qDebug() << sp;
-
+#if 0
+    // plot them all!
     for (uint32_t index = 0; index < size; index++) {
         const RealtimeEntry& entry = m_impl->realtimeData->at(index);
-        QPointF position0 = geoToTile(entry.position);
-        position0.setX((position0.x() - blp.x()) / sp.x());
-        position0.setY((position0.y() - blp.y()) / sp.y());
         QPointF position = renderData.geoxform.apply(entry.position);
 
-        qDebug() << position0 << position;
-
-        painter->fillRect(QRectF(position, QSizeF(0.005, 0.005)), Qt::green);
+        painter->fillRect(QRectF(position, QSizeF(0.003, 0.003)), Qt::green);
     }
 #else
     // update particles
@@ -164,7 +154,6 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
 
     // add new particles
     uint32_t index = m_impl->index;
-    size_t size = m_impl->realtimeData->size();
     for (; index < size; index++) {
         const RealtimeEntry& entry = m_impl->realtimeData->at(index);
         if (m_impl->time > entry.arrivalTime.ms) {
@@ -191,13 +180,13 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
     }
 
     // draw particles
+    //painter->setCompositionMode(QPainter::CompositionMode_Overlay);
     const QVector<PointParticle> &particles = m_impl->particleManager.particles();
     foreach (const PointParticle& particle, particles) {
         if (ParticleManager::isValid(particle)) {
-            float value = particle.decay / m_impl->decayMax;
-            uint8_t green = value >= 1.0f ? 0xff : uint8_t(255.0f * value);
-            QColor color = qRgb(0, green, 0);
-            painter->fillRect(QRectF(particle.point, QSizeF(m_impl->r, m_impl->r)), color);
+            float value = float(particle.decay) / m_impl->decayMax;
+            uint8_t component = value >= 1.0f ? 0xff : uint8_t(255.0f * value);
+            painter->fillRect(QRectF(particle.point, QSizeF(0.003, 0.003)), QBrush(QColor(30, 164, 64, component)));
         }
     }
 

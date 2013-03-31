@@ -1,7 +1,7 @@
 #include "Particle.hpp"
 
 #include <QtCore>
-
+#if 0
 struct PointParticle {
 public:
     QPointF point;
@@ -130,3 +130,4 @@ void Particle::render(const RenderData &renderData, QPainter *painter) {
 void Particle::accept(const RawContestData &data) {
     m_impl->realtimeData = &data.realtimeData;
 }
+#endif
