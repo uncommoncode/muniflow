@@ -10,6 +10,7 @@ struct VisData {
     }; // enum Type
     GeoArea area;
     uint64_t t0;
+    float aspectRatio;
 }; // struct VisData
 
 void readVisData(enum VisData::Type type, VisData *data);

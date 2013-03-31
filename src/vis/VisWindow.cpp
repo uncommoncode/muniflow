@@ -6,10 +6,10 @@
 VisWindow::VisWindow(Renderer *renderer, const RenderData &renderData, QWidget *parent) :
     QWidget(parent)
 {
-    this->resize(512, 512);
-
     m_renderer = renderer;
     m_renderData = renderData;
+
+    this->resize(512, 512.0f * renderData.config.aspectRatio);
     // call init
     m_renderer->init(m_renderData);
 

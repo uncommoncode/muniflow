@@ -75,7 +75,7 @@ Particle::Particle() :
 void Particle::init(const RenderData &renderData) {
     m_impl->index = 0;
     m_impl->r = 100.0f * qMin(renderData.config.area.size.latitude, renderData.config.area.size.longitude) / 500.0f;
-    m_impl->decayMax = 10.0f * float(renderData.framePeriodMs);
+    m_impl->decayMax = 100.0f * float(renderData.framePeriodMs);
     m_impl->time = 0;
 }
 
@@ -118,8 +118,8 @@ void Particle::render(const RenderData &renderData, QPainter *painter) {
     foreach (const PointParticle& particle, particles) {
         if (ParticleManager::isValid(particle)) {
             float value = particle.decay / m_impl->decayMax;
-            uint8_t green = value >= 1.0f ? 0xff : uint8_t(255.0f * value * value);
-            QColor color = qRgba(0, green, 0, 255);
+            uint8_t green = value >= 1.0f ? 0xff : uint8_t(255.0f * value);
+            QColor color = qRgb(0, green, 0);
             painter->fillRect(QRectF(particle.point, QSizeF(m_impl->r, m_impl->r)), color);
         }
     }
