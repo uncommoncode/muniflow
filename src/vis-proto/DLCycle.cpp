@@ -124,13 +124,13 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
     QImage image(m_impl->basemap);
     painter->setCompositionMode(QPainter::CompositionMode_SourceAtop);
     //setAlpha(&image, uint8_t(v * 0.75f + 255.0f * 0.25f));
-    const float imscale = 0.5;
+    const float imscale = 1.0;
     painter->scale(imscale, imscale);
     painter->drawImage(0, 0, image);
 
     // draw all glyphs
     painter->setCompositionMode(QPainter::CompositionMode_Source);
-    painter->scale(imscale * renderData.pixelSize.width(), imscale * renderData.pixelSize.height());
+    painter->scale(renderData.pixelSize.width(), renderData.pixelSize.height());
 
     qDebug() << renderData.pixelSize;
     size_t size = m_impl->realtimeData->size();
@@ -152,9 +152,7 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
         QPointF position = geoToTile(entry.position);
         position.setX((position.x() - blp.x()) / sp.x());
         position.setY((position.y() - blp.y()) / sp.y());
-        position.setX(0.9);
-        qDebug() << position;
-        painter->fillRect(QRectF(position, QSizeF(0.005, 0.005)), Qt::green);
+        painter->fillRect(QRectF(position, QSizeF(0.005, renderData.config.aspectRatio * 0.005)), Qt::green);
     }
 #if 0
     // update particles
