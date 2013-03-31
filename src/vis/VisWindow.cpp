@@ -57,7 +57,7 @@ void VisWindow::paintEvent(QPaintEvent *event) {
     m_renderer->render(m_renderData, &painter);
     painter.restore();
 
-    painter.setPen(Qt::white);
+    painter.setPen(QColor(236, 112, 120));
     painter.drawText(20, 20, QString(toQDateTime(toTime(m_renderData.time.current())).toString()));
     painter.drawText(20, 35, QString::number(m_frame));
     m_renderData.time.update();
