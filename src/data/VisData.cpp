@@ -9,9 +9,9 @@ void readVisData(enum VisData::Type type, VisData *data) {
             GeoLocation topRight = toGeoLocation(-122.3534f, 37.833f);
             data->aspectRatio = (1788.0f / 2000.0f);
 #else
-        // -122.569 -122.338 37.832 37.704
-            GeoLocation bottomLeft = toGeoLocation(-122.569f, 37.832f);
-            GeoLocation topRight = toGeoLocation(-122.338f, 37.704f);
+        // estimate: -122.569 -122.338 37.832 37.704
+            GeoLocation bottomLeft = toGeoLocation(-122.579f, 37.832f);
+            GeoLocation topRight = toGeoLocation(-122.338f, 37.702f);
             data->aspectRatio = 1272.0f / 1878.0f;
 #endif
             data->t0 = 1349112894000LL;

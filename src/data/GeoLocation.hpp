@@ -34,11 +34,7 @@ struct GeoArea {
 
 class GeoCoordinateTransform {
 public:
-    GeoCoordinateTransform(const GeoArea& area = GeoArea()) :
-        m_area(area)
-    {
-        // do nothing
-    }
+    GeoCoordinateTransform(const GeoArea& area = GeoArea());
 
     // transform from lat long to pixel coordinates, normalized to [0, 1]
     QPointF apply(const GeoLocation &location) const;

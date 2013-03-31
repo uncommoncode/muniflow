@@ -134,7 +134,7 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
 
     qDebug() << renderData.pixelSize;
     size_t size = m_impl->realtimeData->size();
-
+#if 1
     GeoLocation topRight;
     topRight.latitude = renderData.config.area.bottomLeft.latitude + renderData.config.area.size.latitude;
     topRight.longitude = renderData.config.area.bottomLeft.longitude + renderData.config.area.size.longitude;
@@ -149,12 +149,16 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
 
     for (uint32_t index = 0; index < size; index++) {
         const RealtimeEntry& entry = m_impl->realtimeData->at(index);
-        QPointF position = geoToTile(entry.position);
-        position.setX((position.x() - blp.x()) / sp.x());
-        position.setY((position.y() - blp.y()) / sp.y());
-        painter->fillRect(QRectF(position, QSizeF(0.005, renderData.config.aspectRatio * 0.005)), Qt::green);
+        QPointF position0 = geoToTile(entry.position);
+        position0.setX((position0.x() - blp.x()) / sp.x());
+        position0.setY((position0.y() - blp.y()) / sp.y());
+        QPointF position = renderData.geoxform.apply(entry.position);
+
+        qDebug() << position0 << position;
+
+        painter->fillRect(QRectF(position, QSizeF(0.005, 0.005)), Qt::green);
     }
-#if 0
+#else
     // update particles
     m_impl->particleManager.update();
 

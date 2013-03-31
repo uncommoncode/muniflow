@@ -37,7 +37,7 @@ QString samplePath(const QString &basePath, bool sample) {
 int main(int argc, char *argv[]) {
     QString directoryPath = "/home/emmett/Downloads/Urban-Data-Challenge-master/public-transportation/san-francisco/";
     QString imageDirectoryPath = "/home/emmett/code/udcproto/data/shapes/";
-    bool sample = false;
+    bool sample = true;
 
     RawContestData contestData;
     readRealtimeData(directoryPath + samplePath("realtime-arrivals", sample), &contestData.realtimeData);
