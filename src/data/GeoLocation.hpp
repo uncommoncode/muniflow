@@ -3,6 +3,8 @@
 #include <QString>
 #include <QPointF>
 
+#include <cmath>
+
 struct GeoLocation {
     float latitude, longitude;
 }; // struct GeoLocation
@@ -43,3 +45,11 @@ public:
 protected:
     GeoArea m_area;
 }; // class GeoCoordinateTransform
+
+static QPointF WGS84toSphericalMercator(const GeoLocation &location) {
+    const double s = 100.0;
+    double x = location.longitude * s / 180.0;
+    double y = log(tan((90.0 + location.latitude) * M_PI / 360.0)) / (M_PI / 180.0);
+    y = y * s / 180.0;
+    return QPointF(x, y);
+}

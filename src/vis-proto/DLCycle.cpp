@@ -92,6 +92,20 @@ void setAlpha(QImage *image, uint8_t alpha) {
     }
 }
 
+double long2tilex(double lon, int z = 12)
+{
+    return (((lon + 180.0) / 360.0 * pow(2.0, z)));
+}
+
+double lat2tiley(double lat, int z = 12)
+{
+    return (((1.0 - log( tan(lat * M_PI/180.0) + 1.0 / cos(lat * M_PI/180.0)) / M_PI) / 2.0 * pow(2.0, z)));
+}
+
+QPointF geoToTile(const GeoLocation &location) {
+    return QPointF(long2tilex(location.longitude), lat2tiley(location.latitude));
+}
+
 void DLCycle::render(const RenderData &renderData, QPainter *painter) {
     // show dots sparkle over time
     QDateTime dateTime;
@@ -110,16 +124,36 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
     QImage image(m_impl->basemap);
     painter->setCompositionMode(QPainter::CompositionMode_SourceAtop);
     //setAlpha(&image, uint8_t(v * 0.75f + 255.0f * 0.25f));
+    const float imscale = 0.5;
+    painter->scale(imscale, imscale);
     painter->drawImage(0, 0, image);
 
     // draw all glyphs
     painter->setCompositionMode(QPainter::CompositionMode_Source);
-    painter->scale(renderData.pixelSize.width(), renderData.pixelSize.height());
+    painter->scale(imscale * renderData.pixelSize.width(), imscale * renderData.pixelSize.height());
 
+    qDebug() << renderData.pixelSize;
     size_t size = m_impl->realtimeData->size();
+
+    GeoLocation topRight;
+    topRight.latitude = renderData.config.area.bottomLeft.latitude + renderData.config.area.size.latitude;
+    topRight.longitude = renderData.config.area.bottomLeft.longitude + renderData.config.area.size.longitude;
+    QPointF trp = geoToTile(topRight);
+    qDebug() << trp;
+    QPointF blp = geoToTile(renderData.config.area.bottomLeft);
+    qDebug() << blp;
+
+    QPointF sp(trp.x() - blp.x(), (trp.y() - blp.y()));
+
+    qDebug() << sp;
+
     for (uint32_t index = 0; index < size; index++) {
         const RealtimeEntry& entry = m_impl->realtimeData->at(index);
-        QPointF position = renderData.geoxform.apply(entry.position);
+        QPointF position = geoToTile(entry.position);
+        position.setX((position.x() - blp.x()) / sp.x());
+        position.setY((position.y() - blp.y()) / sp.y());
+        position.setX(0.9);
+        qDebug() << position;
         painter->fillRect(QRectF(position, QSizeF(0.005, 0.005)), Qt::green);
     }
 #if 0
