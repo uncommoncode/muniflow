@@ -97,13 +97,14 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
     QDateTime dateTime;
     dateTime.setMSecsSinceEpoch(renderData.time.current());
     int hour = dateTime.time().hour();
-
+    int minute = dateTime.time().minute();
+    int second = dateTime.time().second();
     //painter->fillRect(QRect(QPoint(0, 0), renderData.pixelSize), QBrush(QColor(0, 40, 200)));
 
     // noon peak, +/- 6 hours of sun
-    float h = hour / 24.0f;
+    float h = (float(hour) + float(minute) / 60.0f + float(second) / 3600.0f) / 24.0f;
     float dh = 0.5f - h;
-    uint8_t v = uint8_t(255.0f * qAbs(dh));
+    uint8_t v = uint8_t(255.0f * 2.0f * qAbs(dh));
     painter->fillRect(QRect(QPoint(0, 0), renderData.pixelSize), QBrush(QColor(240, 240, 240, 255)));
     painter->fillRect(QRect(QPoint(0, 0), renderData.pixelSize), QBrush(QColor(0, 0, 0, v)));
     QImage image(m_impl->basemap);
@@ -111,6 +112,16 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
     //setAlpha(&image, uint8_t(v * 0.75f + 255.0f * 0.25f));
     painter->drawImage(0, 0, image);
 
+    // draw all glyphs
+    painter->setCompositionMode(QPainter::CompositionMode_Source);
+    painter->scale(renderData.pixelSize.width(), renderData.pixelSize.height());
+
+    size_t size = m_impl->realtimeData->size();
+    for (uint32_t index = 0; index < size; index++) {
+        const RealtimeEntry& entry = m_impl->realtimeData->at(index);
+        QPointF position = renderData.geoxform.apply(entry.position);
+        painter->fillRect(QRectF(position, QSizeF(0.005, 0.005)), Qt::green);
+    }
 #if 0
     // update particles
     m_impl->particleManager.update();
