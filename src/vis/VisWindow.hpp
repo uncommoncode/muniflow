@@ -14,4 +14,5 @@ protected:
     QImage m_buffer;
     Renderer *m_renderer;
     RenderData m_renderData;
+    uint32_t m_frame;
 }; // class VisWindow

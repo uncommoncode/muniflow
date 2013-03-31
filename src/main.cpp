@@ -10,8 +10,8 @@
 #include "vis/Plot.hpp"
 #include "vis/VisWindow.hpp"
 
-#include "vis-proto/RawProto.hpp"
 #include "vis-proto/Simple.hpp"
+#include "vis-proto/Particle.hpp"
 
 #include <QtCore>
 #include <QtGui>
@@ -24,6 +24,10 @@
 
     ? map or other entries ?
   */
+
+bool realtimeArrivalCompare(const RealtimeEntry &a, const RealtimeEntry &b) {
+    return a.arrivalTime.ms < b.arrivalTime.ms;
+}
 
 QString samplePath(const QString &basePath, bool sample) {
     return sample ? basePath + ".excerpt.csv" : basePath + ".csv";
@@ -53,14 +57,17 @@ int main(int argc, char *argv[]) {
     plot(visData, contestData.passengerData);
 #endif
 
-    QSharedPointer<RawProto> proto(new Simple());
+    qSort(contestData.realtimeData.begin(), contestData.realtimeData.end(), realtimeArrivalCompare);
+
+    QSharedPointer<RawProto> proto(new Particle());
     proto->accept(contestData);
 
     RenderData renderData;
     renderData.config = visData;
     renderData.geoxform = GeoCoordinateTransform(renderData.config.area);
-    int64_t tlen = 5000000LL;
-    renderData.time = TimeController(renderData.config.t0 - tlen, tlen);
+    renderData.timestepMs = 100000LL;
+    renderData.framePeriodMs = 20;
+    renderData.time = TimeController(renderData.config.t0 - renderData.timestepMs, renderData.timestepMs);
 
     VisWindow window(proto.data(), renderData);
     window.show();

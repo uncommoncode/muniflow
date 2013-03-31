@@ -26,6 +26,10 @@ int64_t TimeController::relative(const Time& time) const {
     return time.ms - m_tcur;
 }
 
+int64_t TimeController::current()const {
+    return m_tcur;
+}
+
 void TimeController::update() {
     m_tcur += m_tlen;
 }

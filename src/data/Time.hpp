@@ -8,6 +8,12 @@ struct Time {
     int64_t ms;
 }; // struct Time
 
+static Time toTime(int64_t ms) {
+    Time time;
+    time.ms = ms;
+    return time;
+}
+
 static Time toTime(const QDateTime &dateTime) {
     Time time;
     time.ms = dateTime.toMSecsSinceEpoch();

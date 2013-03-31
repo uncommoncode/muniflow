@@ -12,6 +12,8 @@ public:
     TimeController time;
     GeoCoordinateTransform geoxform;
     VisData config;
+    uint32_t framePeriodMs;
+    uint64_t timestepMs;
 }; // class RenderData
 
 class Renderer {
