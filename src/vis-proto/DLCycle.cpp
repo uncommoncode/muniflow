@@ -118,7 +118,7 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
     // noon peak, +/- 6 hours of sun
     float h = (float(hour) + float(minute) / 60.0f + float(second) / 3600.0f) / 24.0f;
     float dh = 0.5f - h;
-    dh = 0.0;
+    //dh = 0.0;
     uint8_t v = uint8_t(255.0f * 2.0f * qAbs(dh));
 
     // sunset red - blue, sunrise yellow
@@ -189,7 +189,7 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
             float value = float(particle.decay) / m_impl->decayMax;
             uint8_t component = value >= 1.0f ? 0xff : uint8_t(255.0f * value);
             QSizeF size(0.005, 0.005);
-            QPointF point(particle.point.x() - size.width() * 0.5 + 0.001, particle.point.y() - size.height() * 0.5 + 0.000);
+            QPointF point(particle.point.x() - size.width() * 0.3, particle.point.y() - size.height() * 0.3);
             painter->fillRect(QRectF(point, size), QBrush(QColor(30, 255, 64, component)));
         }
     }

@@ -67,8 +67,8 @@ int main(int argc, char *argv[]) {
     RenderData renderData;
     renderData.config = visData;
     renderData.geoxform = GeoCoordinateTransform(renderData.config.area);
-    renderData.timestepMs = 6000000LL;
-    renderData.framePeriodMs = 20;
+    renderData.timestepMs = 60000LL;
+    renderData.framePeriodMs = 40;
     renderData.time = TimeController(renderData.config.t0 - renderData.timestepMs, renderData.timestepMs);
 
     VisWindow window(proto.data(), renderData);
