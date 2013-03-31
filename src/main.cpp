@@ -12,6 +12,7 @@
 
 #include "vis-proto/Simple.hpp"
 #include "vis-proto/Particle.hpp"
+#include "vis-proto/DLCycle.hpp"
 
 #include <QtCore>
 #include <QtGui>
@@ -35,7 +36,8 @@ QString samplePath(const QString &basePath, bool sample) {
 
 int main(int argc, char *argv[]) {
     QString directoryPath = "/home/emmett/Downloads/Urban-Data-Challenge-master/public-transportation/san-francisco/";
-    bool sample = false;
+    QString imageDirectoryPath = "/home/emmett/code/udcproto/data/shapes/";
+    bool sample = true;
 
     RawContestData contestData;
     readRealtimeData(directoryPath + samplePath("realtime-arrivals", sample), &contestData.realtimeData);
@@ -59,7 +61,7 @@ int main(int argc, char *argv[]) {
 
     qSort(contestData.realtimeData.begin(), contestData.realtimeData.end(), realtimeArrivalCompare);
 
-    QSharedPointer<RawProto> proto(new Particle());
+    QSharedPointer<RawProto> proto(new DLCycle(imageDirectoryPath));
     proto->accept(contestData);
 
     RenderData renderData;

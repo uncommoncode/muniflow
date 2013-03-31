@@ -14,6 +14,7 @@ public:
     VisData config;
     uint32_t framePeriodMs;
     uint64_t timestepMs;
+    QSize pixelSize;
 }; // class RenderData
 
 class Renderer {

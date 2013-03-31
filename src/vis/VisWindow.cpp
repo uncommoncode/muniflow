@@ -9,7 +9,9 @@ VisWindow::VisWindow(Renderer *renderer, const RenderData &renderData, QWidget *
     m_renderer = renderer;
     m_renderData = renderData;
 
-    this->resize(512, 512.0f * renderData.config.aspectRatio);
+    this->resize(512, 512.0f * m_renderData.config.aspectRatio);
+
+    m_renderData.pixelSize = this->size();
     // call init
     m_renderer->init(m_renderData);
 
@@ -17,18 +19,23 @@ VisWindow::VisWindow(Renderer *renderer, const RenderData &renderData, QWidget *
     connect(timer, SIGNAL(timeout()), this, SLOT(update()));
     timer->start(renderData.framePeriodMs);
 
-    m_buffer = QImage(this->width(), this->height(), QImage::Format_ARGB32);
+    m_buffer = QImage(this->width(), this->height(), QImage::Format_ARGB32_Premultiplied);
     QPainter painter(&m_buffer);
     painter.fillRect(m_buffer.rect(), Qt::black);
     m_frame = 0;
 }
+//#define USE_BUFFER
 
 void VisWindow::paintEvent(QPaintEvent *event) {
 #if defined(USE_BUFFER)
     QPainter painter(&m_buffer);
-
-    painter.scale(m_buffer.width(), m_buffer.height());
-
+    painter.fillRect(m_buffer.rect(), Qt::black);
+    painter.setPen(Qt::white);
+    painter.drawText(20, 20, QString(toQDateTime(toTime(m_renderData.time.current())).toString()));
+    painter.drawText(20, 35, QString::number(m_frame));
+#if defined(USE_NORMALIZED_COORDINATES)
+    painter.scale(this->width(), this->height());
+#endif
     m_renderer->render(m_renderData, &painter);
     m_renderData.time.update();
 
@@ -41,7 +48,9 @@ void VisWindow::paintEvent(QPaintEvent *event) {
     painter.setPen(Qt::white);
     painter.drawText(20, 20, QString(toQDateTime(toTime(m_renderData.time.current())).toString()));
     painter.drawText(20, 35, QString::number(m_frame));
+#if defined(USE_NORMALIZED_COORDINATES)
     painter.scale(this->width(), this->height());
+#endif
     m_renderer->render(m_renderData, &painter);
     m_renderData.time.update();
 #endif

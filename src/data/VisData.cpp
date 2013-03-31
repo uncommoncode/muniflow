@@ -9,7 +9,7 @@ void readVisData(enum VisData::Type type, VisData *data) {
             data->t0 = 1349112894000LL;
             data->area.bottomLeft = bottomLeft;
             data->area.size = toGeoLocation(topRight.longitude - bottomLeft.longitude, topRight.latitude - bottomLeft.latitude);
-            data->aspectRatio = (1873.0f / 2096.0f);
+            data->aspectRatio = (1788.0f / 2000.0f);
         } break;
     }
 }
