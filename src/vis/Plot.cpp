@@ -36,8 +36,6 @@ void plot(const VisData &visData, const QVector<RealtimeEntry> &entries) {
     float r = 9.0f * min(visData.area.size.latitude, visData.area.size.longitude) / image.width();
     foreach (const RealtimeEntry &entry, entries) {
         QPointF position = xform.apply(entry.position);
-
-        qDebug() << toString(entry.position);
         painter.fillRect(QRectF(position, QSizeF(r, r)), Qt::green);
     }
     image.save("images/plot/realtime-data.png");
@@ -53,7 +51,6 @@ void plot(const VisData &visData, const QVector<PassengerEntry> &entries) {
     float r = 9.0f * min(visData.area.size.latitude, visData.area.size.longitude) / image.width();
     foreach (const PassengerEntry &entry, entries) {
         QPointF position = xform.apply(entry.location);
-        qDebug() << toString(entry.location);
         painter.fillRect(QRectF(position, QSizeF(r, r)), Qt::green);
     }
     image.save("images/plot/passenger-data.png");

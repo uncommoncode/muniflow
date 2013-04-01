@@ -33,6 +33,7 @@ void readPassengerData(const QString &filePath, QVector<PassengerEntry> *entries
       int month = fields.at(6).toInt();
       int day = fields.at(7).toInt();
       int year = fields.at(8).toInt();
+      year = year < 50 ? year + 2000 : year;
       date.setDate(year, month, day);
 
       entry.route = fields.at(9);
@@ -43,15 +44,21 @@ void readPassengerData(const QString &filePath, QVector<PassengerEntry> *entries
 
       // DIR,VEHNO,TIMESTOP,TIMEDOORCLOSE,TIMEPULLOUT
       QTime time;
-      time.fromString(fields.at(17));
+      QStringList timeList = fields.at(17).split(":");
+      Q_ASSERT(timeList.size() == 3);
+      time.setHMS(timeList.at(0).toInt(), timeList.at(1).toInt(), timeList.at(2).toInt());
 
       QDateTime dateTime;
       dateTime.setDate(date);
       dateTime.setTime(time);
 
-      entry.time = toTime(dateTime);
+      // M/d/yyyy h:mm:ss
+      //QString dateTimeString = QString::number(month) + "/" + QString::number(day) + "/" + QString::number(year) + " " + fields.at(17);
 
-      entries->push_back(entry);
+      entry.time = toTime(dateTime);
+      if (dateTime.isValid()) {
+          entries->push_back(entry);
+      }
     }
 
     file.close();

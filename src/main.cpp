@@ -49,14 +49,12 @@ int main(int argc, char *argv[]) {
     qSort(contestData.realtimeData.begin(), contestData.realtimeData.end(), realtimeArrivalCompare);
 #endif
 
-    QVector<PassengerEntry> passengerData;
 #ifndef USE_REALTIME_DATA
     readPassengerData(directoryPath + samplePath("passenger-count", sample), &contestData.passengerData);
-    qSort(passengerData.begin(), passengerData.end(), passengerDepartureCompare);
+    qSort(contestData.passengerData.begin(), contestData.passengerData.end(), passengerDepartureCompare);
 #endif
 
 #if defined(PLOT_ALL)
-    QVector<ScheduleEntry> scheduleData;
     readScheduleData(directoryPath + samplePath("scheduled-arrivals", sample), &contestData.scheduleData);
 #endif
 
@@ -64,6 +62,8 @@ int main(int argc, char *argv[]) {
     readVisData(VisData::Type_SanFrancisco, &visData);
 
     QApplication app(argc, argv);
+    plot(visData, contestData.passengerData);
+
 #if defined(PLOT_ALL)
     plot(visData, contestData.realtimeData);
     plot(visData, contestData.scheduleData);
@@ -76,12 +76,12 @@ int main(int argc, char *argv[]) {
     RenderData renderData;
     renderData.config = visData;
 #if defined(USE_REALTIME_DATA)
-    renderData.config.t0 = realtimeData.front().time;
+    renderData.config.t0 = contestData.realtimeData.front().time;
 #else
-    renderData.config.t0 = passengerData.at(0).time.ms;
+    renderData.config.t0 = contestData.passengerData.front().time.ms;
 #endif
     renderData.geoxform = GeoCoordinateTransform(renderData.config.area);
-    renderData.timestepMs = 60000LL;
+    renderData.timestepMs = 600000LL;
     renderData.framePeriodMs = 40;
     renderData.time = TimeController(renderData.config.t0 - renderData.timestepMs, renderData.timestepMs);
 
