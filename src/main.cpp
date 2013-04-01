@@ -30,6 +30,10 @@ bool realtimeArrivalCompare(const RealtimeEntry &a, const RealtimeEntry &b) {
     return a.arrivalTime.ms < b.arrivalTime.ms;
 }
 
+bool passengerDepartureCompare(const PassengerEntry &a, const PassengerEntry &b) {
+    return a.time.ms < b.time.ms;
+}
+
 QString samplePath(const QString &basePath, bool sample) {
     return sample ? basePath + ".excerpt.csv" : basePath + ".csv";
 }
@@ -40,11 +44,18 @@ int main(int argc, char *argv[]) {
     bool sample = false;
 
     RawContestData contestData;
+#if defined(USE_REALTIME_DATA)
     readRealtimeData(directoryPath + samplePath("realtime-arrivals", sample), &contestData.realtimeData);
-#if defined(PLOT_ALL)
-    QVector<PassengerEntry> passengerData;
-    readPassengerData(directoryPath + samplePath("passenger-count", sample), &contestData.passengerData);
+    qSort(contestData.realtimeData.begin(), contestData.realtimeData.end(), realtimeArrivalCompare);
+#endif
 
+    QVector<PassengerEntry> passengerData;
+#ifndef USE_REALTIME_DATA
+    readPassengerData(directoryPath + samplePath("passenger-count", sample), &contestData.passengerData);
+    qSort(passengerData.begin(), passengerData.end(), passengerDepartureCompare);
+#endif
+
+#if defined(PLOT_ALL)
     QVector<ScheduleEntry> scheduleData;
     readScheduleData(directoryPath + samplePath("scheduled-arrivals", sample), &contestData.scheduleData);
 #endif
@@ -53,19 +64,22 @@ int main(int argc, char *argv[]) {
     readVisData(VisData::Type_SanFrancisco, &visData);
 
     QApplication app(argc, argv);
-    plot(visData, contestData.realtimeData);
 #if defined(PLOT_ALL)
+    plot(visData, contestData.realtimeData);
     plot(visData, contestData.scheduleData);
     plot(visData, contestData.passengerData);
 #endif
-
-    qSort(contestData.realtimeData.begin(), contestData.realtimeData.end(), realtimeArrivalCompare);
 
     QSharedPointer<RawProto> proto(new DLCycle(imageDirectoryPath));
     proto->accept(contestData);
 
     RenderData renderData;
     renderData.config = visData;
+#if defined(USE_REALTIME_DATA)
+    renderData.config.t0 = realtimeData.front().time;
+#else
+    renderData.config.t0 = passengerData.at(0).time.ms;
+#endif
     renderData.geoxform = GeoCoordinateTransform(renderData.config.area);
     renderData.timestepMs = 60000LL;
     renderData.framePeriodMs = 40;

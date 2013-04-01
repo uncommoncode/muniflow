@@ -1,6 +1,7 @@
 #include "DLCycle.hpp"
 
 #include <QtCore>
+#include <QHash>
 
 struct PointParticle {
 public:
@@ -57,9 +58,49 @@ protected:
     QVector<PointParticle> m_particles;
 }; // class ParticleManager
 
+class VectorParticleManager {
+public:
+    VectorParticleManager() {
+        // nothing
+    }
+
+    void addEvent(uint32_t carUID, const QPointF& point, uint64_t time) {
+        CarData &data = m_cars[carUID];
+        data.points.push_back(point);
+        data.polygon = QPolygonF(data.points);
+    }
+
+    void update() {
+
+    }
+
+    void draw(QPainter *painter) {
+        painter->setPen(QColor(255, 0, 0));
+        foreach (const CarData &car, m_cars) {
+            painter->drawPolyline(car.polygon);
+        }
+    }
+
+protected:
+    struct CarData {
+        QVector<QPointF> points;
+        QPolygonF polygon;
+    };
+    QHash<uint32_t, CarData> m_cars;
+}; // class VectorParticleManager
+
 struct DLCycle::Impl {
+
+#if defined(USE_REALTIME_DATA)
     const QVector<RealtimeEntry> *realtimeData;
+#else
+    const QVector<PassengerEntry> *passengerData;
+#endif
+#if defined(USE_VECTOR)
+    VectorParticleManager particleManager;
+#else
     ParticleManager particleManager;
+#endif
     uint32_t index;
     float decayMax;
     float r;
@@ -140,7 +181,11 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
     painter->setCompositionMode(QPainter::CompositionMode_Source);
     painter->fillRect(QRectF(QPointF(0.6, 0.5), QSizeF(0.01, 0.01)), QBrush(QColor(0, 0, 0, (255) & 0xff)));
 #endif
+#if defined(USE_REALTIME_DATA)
     size_t size = m_impl->realtimeData->size();
+#else
+    size_t size = m_impl->passengerData->size();
+#endif
 #if 0
     // plot them all!
     for (uint32_t index = 0; index < size; index++) {
@@ -156,17 +201,27 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
     // add new particles
     uint32_t index = m_impl->index;
     for (; index < size; index++) {
+#if defined(USE_REALTIME_DATA)
         const RealtimeEntry& entry = m_impl->realtimeData->at(index);
+#else
+        const PassengerEntry& entry = m_impl->passengerData->at(index);
+#endif
+#if 0
         if (m_impl->time > entry.arrivalTime.ms) {
             qDebug() << QString("Time not monotonic! ") << entry.arrivalTime.ms;
         }
         m_impl->time = entry.arrivalTime.ms;
-        if (renderData.time.contains(entry.arrivalTime)) {
-            QPointF position = renderData.geoxform.apply(entry.position);
-            uint32_t decay = uint32_t(m_impl->decayMax * double(renderData.time.relative(entry.arrivalTime)) / double(renderData.timestepMs));
+#endif
+        if (renderData.time.contains(entry.time)) {
+            QPointF position = renderData.geoxform.apply(entry.location);
+            uint32_t decay = uint32_t(m_impl->decayMax * double(renderData.time.relative(entry.time)) / double(renderData.timestepMs));
+#if defined(USE_VECTOR)
+            m_impl->particleManager.addEvent(qHash(entry.vehicleAssignment), position, entry.arrivalTime.ms);
+#else
             m_impl->particleManager.addParticle(position, decay);
+#endif
         } else {
-            if (renderData.time.lt(entry.arrivalTime)) {
+            if (renderData.time.lt(entry.time)) {
                 // drop frame, in past
                 index++;
             } else {
@@ -182,6 +237,7 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
 
     // draw particles
     // draw low frequency, high frequency with different decays -> spatial fft
+#if 1
     painter->setCompositionMode(QPainter::CompositionMode_SourceAtop);
     const QVector<PointParticle> &particles = m_impl->particleManager.particles();
     foreach (const PointParticle& particle, particles) {
@@ -193,11 +249,19 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
             painter->fillRect(QRectF(point, size), QBrush(QColor(30, 255, 64, component)));
         }
     }
+#else
+    // stuff
+    m_impl->particleManager.draw(painter);
+#endif
 
     m_impl->index = index;
 #endif
 }
 
 void DLCycle::accept(const RawContestData &data) {
+#if defined(USE_REALTIME_DATA)
     m_impl->realtimeData = &data.realtimeData;
+#else
+    m_impl->passengerData = &data.passengerData;
+#endif
 }
