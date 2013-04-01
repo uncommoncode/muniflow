@@ -5,5 +5,5 @@ SOURCES += src/main.cpp \
 	src/vis-proto/Simple.cpp \
 	src/vis-proto/Particle.cpp \
 	src/vis-proto/DLCycle.cpp
-CONFIG += qt debug
+CONFIG += qt release
 INCLUDEPATH += src/

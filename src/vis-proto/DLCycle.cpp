@@ -174,11 +174,18 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
     // noon peak, +/- 6 hours of sun
     float h = (float(hour) + float(minute) / 60.0f + float(second) / 3600.0f) / 24.0f;
     float dh = 0.5f - h;
-    //dh = 0.0;
-    uint8_t v = uint8_t(255.0f * 2.0f * qAbs(dh));
+    float nh = 2.0f * qAbs(dh);
+    uint8_t v = uint8_t(255.0f * nh);
 
     // sunset red - blue, sunrise yellow
+    painter->setCompositionMode(QPainter::CompositionMode_SourceAtop);
+
+    QColor nightColor(8, 29, 88);
+    QColor dayColor(235, 120, 20);
+    QColor timeColor = nh < 0.5f ? dayColor : nightColor;
+    timeColor.setAlpha(70);
     painter->fillRect(QRect(QPoint(0, 0), renderData.pixelSize), QBrush(QColor(240, 240, 240, 255)));
+    //painter->fillRect(QRect(QPoint(0, 0), renderData.pixelSize), QBrush(timeColor));
     painter->fillRect(QRect(QPoint(0, 0), renderData.pixelSize), QBrush(QColor(0, 0, 0, v)));
     QImage image(m_impl->basemap);
     painter->setCompositionMode(QPainter::CompositionMode_SourceAtop);
@@ -189,7 +196,6 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
     painter->setCompositionMode(QPainter::CompositionMode_Darken);
     uint8_t darkness = uint8_t(170.0f * 2.0f * qAbs(dh)) + 20;
     painter->fillRect(QRect(QPoint(0, 0), renderData.pixelSize), QBrush(QColor(0, 0, 0, darkness)));
-
 
     painter->setCompositionMode(QPainter::CompositionMode_DestinationIn);
     painter->fillRect(QRect(QPoint(0, 0), renderData.pixelSize), QBrush(QColor(255, 255, 255, 255)));
@@ -281,6 +287,7 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
     // draw low frequency, high frequency with different decays -> spatial fft
 #if 1
 
+    QColor prettyPretty(65, 182, 196);
     QColor startColor(255, 255, 217);
     QColor stopColor(8, 29, 88);
     painter->setCompositionMode(QPainter::CompositionMode_SourceAtop);
@@ -294,13 +301,26 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
             QPointF point(sx * particle.point.x(), sy * particle.point.y());
             painter->setPen(Qt::NoPen);
             QRadialGradient gradient(point, size.width() * 0.5f);
-            QColor color = mix(clamp(particle.scale, 0, 1), stopColor, startColor);
+            QColor color = mix(clamp(particle.scale, 0.0, 1.0), stopColor, startColor);
+            color = QColor(255, 255, 255);
+            color = prettyPretty;
             gradient.setColorAt(0, QColor(color.red(), color.green(), color.blue(), component));
             gradient.setColorAt(1, QColor(color.red(), color.green(), color.blue(), 0));
 
             QBrush brush(gradient);
             painter->setBrush(brush);
-            painter->drawEllipse(point, renderData.config.aspectRatio * size.width(), size.width());
+            painter->drawEllipse(point, size.width(), size.width());
+#if 0
+            color = QColor(65, 182, 196);
+            float velocity = 4.0f;
+            float pointWidth = 5;
+            gradient = QRadialGradient(point, pointWidth);
+            gradient.setColorAt(0, QColor(color.red(), color.green(), color.blue(), clamp(value / velocity, 0.0f, 1.0f) * velocity * 255.0f));
+            gradient.setColorAt(1, QColor(color.red(), color.green(), color.blue(), 0));
+
+            painter->setBrush(gradient);
+            painter->drawEllipse(point, pointWidth, pointWidth);
+#endif
         }
     }
 #else
