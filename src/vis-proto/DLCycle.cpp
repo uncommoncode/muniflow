@@ -1,6 +1,7 @@
 #include "DLCycle.hpp"
 
 #include <QtCore>
+#include <QRadialGradient>
 #include <QHash>
 
 struct PointParticle {
@@ -150,6 +151,17 @@ QPointF geoToTile(const GeoLocation &location) {
     return QPointF(long2tilex(location.longitude), lat2tiley(location.latitude));
 }
 
+float clamp(float value, float min, float max) {
+    return value > max ? max : value < min ? min : value;
+}
+
+QColor mix(float value, const QColor &start, const QColor &stop) {
+    float hue = start.hueF() * (1.0f - value) + stop.hueF() * value;
+    float saturation = start.saturationF() * (1.0f - value) + stop.saturationF() * value;
+    float lightness = start.lightnessF() * (1.0f - value) + stop.lightnessF() * value;
+    return QColor::fromHslF(hue, saturation, lightness);
+}
+
 void DLCycle::render(const RenderData &renderData, QPainter *painter) {
     // show dots sparkle over time
     QDateTime dateTime;
@@ -178,8 +190,33 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
     uint8_t darkness = uint8_t(170.0f * 2.0f * qAbs(dh)) + 20;
     painter->fillRect(QRect(QPoint(0, 0), renderData.pixelSize), QBrush(QColor(0, 0, 0, darkness)));
 
+
+    painter->setCompositionMode(QPainter::CompositionMode_DestinationIn);
+    painter->fillRect(QRect(QPoint(0, 0), renderData.pixelSize), QBrush(QColor(255, 255, 255, 255)));
+
     // draw all glyphs
-    painter->scale(renderData.pixelSize.width(), renderData.pixelSize.height());
+#if 0
+    painter->setCompositionMode(QPainter::CompositionMode_SourceAtop);
+    {
+        QSizeF size(100, 100);
+        QPointF point(500, 500);
+        painter->setPen(Qt::NoPen);
+        QRadialGradient gradient(point, size.width() * 0.5);
+        gradient.setColorAt(0, QColor(30, 255, 64, 255));
+        gradient.setColorAt(1, QColor(30, 255, 64, 0));
+
+        QBrush brush(gradient);
+        painter->setBrush(brush);
+
+        painter->drawEllipse(point, renderData.config.aspectRatio * size.width(), size.width());
+
+    }
+#endif
+    float sx = renderData.pixelSize.width() * imscale;
+    float sy = renderData.pixelSize.height() * imscale;
+    //painter->scale(renderData.pixelSize.width(), renderData.pixelSize.height());
+
+
 #if 0
     painter->setCompositionMode(QPainter::CompositionMode_Source);
     painter->fillRect(QRectF(QPointF(0.6, 0.5), QSizeF(0.01, 0.01)), QBrush(QColor(0, 0, 0, (255) & 0xff)));
@@ -243,17 +280,27 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
     // draw particles
     // draw low frequency, high frequency with different decays -> spatial fft
 #if 1
+
+    QColor startColor(255, 255, 217);
+    QColor stopColor(8, 29, 88);
     painter->setCompositionMode(QPainter::CompositionMode_SourceAtop);
     const QVector<PointParticle> &particles = m_impl->particleManager.particles();
     foreach (const PointParticle& particle, particles) {
         if (ParticleManager::isValid(particle)) {
             float value = float(particle.decay) / m_impl->decayMax;
             uint8_t component = value >= 1.0f ? 0xff : uint8_t(255.0f * value);
-            QSizeF size(0.005 * particle.scale, 0.005 * particle.scale);
-            QPointF point(particle.point.x() - size.width() * 0.3, particle.point.y() - size.height() * 0.3);
+            QSizeF size(sx * 0.003 * particle.scale * particle.decay, sy * 0.003 * particle.scale);
+            //QPointF point((particle.point.x() - size.width() * 0.3, particle.point.y() - size.height() * 0.3);
+            QPointF point(sx * particle.point.x(), sy * particle.point.y());
             painter->setPen(Qt::NoPen);
-            painter->setBrush(QColor(30, 255, 64, component));
-            painter->drawEllipse(particle.point, renderData.config.aspectRatio * size.width(), size.width());
+            QRadialGradient gradient(point, size.width() * 0.5f);
+            QColor color = mix(clamp(particle.scale, 0, 1), stopColor, startColor);
+            gradient.setColorAt(0, QColor(color.red(), color.green(), color.blue(), component));
+            gradient.setColorAt(1, QColor(color.red(), color.green(), color.blue(), 0));
+
+            QBrush brush(gradient);
+            painter->setBrush(brush);
+            painter->drawEllipse(point, renderData.config.aspectRatio * size.width(), size.width());
         }
     }
 #else
