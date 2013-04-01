@@ -180,25 +180,27 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
     // sunset red - blue, sunrise yellow
     painter->setCompositionMode(QPainter::CompositionMode_SourceAtop);
 
+    QSize pixelSize(renderData.pixelSize.width() / renderData.config.scale, renderData.pixelSize.height() / renderData.config.scale);
+
     QColor nightColor(8, 29, 88);
     QColor dayColor(235, 120, 20);
     QColor timeColor = nh < 0.5f ? dayColor : nightColor;
     timeColor.setAlpha(70);
-    painter->fillRect(QRect(QPoint(0, 0), renderData.pixelSize), QBrush(QColor(240, 240, 240, 255)));
+    painter->fillRect(QRect(QPoint(0, 0), pixelSize), QBrush(QColor(240, 240, 240, 255)));
     //painter->fillRect(QRect(QPoint(0, 0), renderData.pixelSize), QBrush(timeColor));
-    painter->fillRect(QRect(QPoint(0, 0), renderData.pixelSize), QBrush(QColor(0, 0, 0, v)));
+    painter->fillRect(QRect(QPoint(0, 0), pixelSize), QBrush(QColor(0, 0, 0, v)));
     QImage image(m_impl->basemap);
     painter->setCompositionMode(QPainter::CompositionMode_SourceAtop);
     //setAlpha(&image, uint8_t(v * 0.75f + 255.0f * 0.25f));
-    const float imscale = 1.0;
-    painter->scale(imscale, imscale);
+    const float imscale = 1.0f;
+    painter->scale(renderData.config.scale, renderData.config.scale);
     painter->drawImage(0, 0, image);
     painter->setCompositionMode(QPainter::CompositionMode_Darken);
     uint8_t darkness = uint8_t(170.0f * 2.0f * qAbs(dh)) + 20;
-    painter->fillRect(QRect(QPoint(0, 0), renderData.pixelSize), QBrush(QColor(0, 0, 0, darkness)));
+    painter->fillRect(QRect(QPoint(0, 0), pixelSize), QBrush(QColor(0, 0, 0, darkness)));
 
     painter->setCompositionMode(QPainter::CompositionMode_DestinationIn);
-    painter->fillRect(QRect(QPoint(0, 0), renderData.pixelSize), QBrush(QColor(255, 255, 255, 255)));
+    painter->fillRect(QRect(QPoint(0, 0), pixelSize), QBrush(QColor(255, 255, 255, 255)));
 
     // draw all glyphs
 #if 0
@@ -218,8 +220,8 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
 
     }
 #endif
-    float sx = renderData.pixelSize.width() * imscale;
-    float sy = renderData.pixelSize.height() * imscale;
+    float sx = pixelSize.width();
+    float sy = pixelSize.height();
     //painter->scale(renderData.pixelSize.width(), renderData.pixelSize.height());
 
 
@@ -280,7 +282,7 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
     }
 
     if (index == size) {
-        qDebug() << "Finished!";
+        exit(0);
     }
 
     // draw particles
@@ -303,7 +305,7 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
             QRadialGradient gradient(point, size.width() * 0.5f);
             QColor color = mix(clamp(particle.scale, 0.0, 1.0), stopColor, startColor);
             color = QColor(255, 255, 255);
-            color = prettyPretty;
+            //color = prettyPretty;
             gradient.setColorAt(0, QColor(color.red(), color.green(), color.blue(), component));
             gradient.setColorAt(1, QColor(color.red(), color.green(), color.blue(), 0));
 
