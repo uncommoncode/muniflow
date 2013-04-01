@@ -7,20 +7,23 @@ struct PointParticle {
 public:
     QPointF point;
     uint32_t decay;
+    float scale;
 }; // struct PointParticle
 
 class ParticleManager {
 public:
-    void addParticle(QPointF point, uint32_t decay) {
+    void addParticle(QPointF point, float scale, uint32_t decay) {
         if (m_freelist.empty()) {
             PointParticle particle;
             particle.point = point;
             particle.decay = decay;
+            particle.scale = scale;
             m_particles.push_back(particle);
         } else {
             PointParticle *particle = m_freelist.front();
             particle->decay = decay;
             particle->point = point;
+            particle->scale = scale;
             m_freelist.pop_front();
         }
     }
@@ -218,7 +221,9 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
 #if defined(USE_VECTOR)
             m_impl->particleManager.addEvent(qHash(entry.vehicleAssignment), position, entry.arrivalTime.ms);
 #else
-            m_impl->particleManager.addParticle(position, decay);
+            if ((entry.peopleOn > 0) || (entry.peopleOff > 0)) {
+                m_impl->particleManager.addParticle(position, 0.25f * sqrt(entry.load), decay);
+            }
 #endif
         } else {
             if (renderData.time.lt(entry.time)) {
@@ -244,9 +249,11 @@ void DLCycle::render(const RenderData &renderData, QPainter *painter) {
         if (ParticleManager::isValid(particle)) {
             float value = float(particle.decay) / m_impl->decayMax;
             uint8_t component = value >= 1.0f ? 0xff : uint8_t(255.0f * value);
-            QSizeF size(0.005, 0.005);
+            QSizeF size(0.005 * particle.scale, 0.005 * particle.scale);
             QPointF point(particle.point.x() - size.width() * 0.3, particle.point.y() - size.height() * 0.3);
-            painter->fillRect(QRectF(point, size), QBrush(QColor(30, 255, 64, component)));
+            painter->setPen(Qt::NoPen);
+            painter->setBrush(QColor(30, 255, 64, component));
+            painter->drawEllipse(particle.point, renderData.config.aspectRatio * size.width(), size.width());
         }
     }
 #else
